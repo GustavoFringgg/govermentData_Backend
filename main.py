@@ -50,10 +50,9 @@ async def get_tenders(tenderName: str = None):
         logger.error(f"Scraping failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the Tender Scraper API. Go to /api/tenders to get data."}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000,reload=True)
+
+
