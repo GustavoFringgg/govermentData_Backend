@@ -6,10 +6,10 @@ from scraper import Scraper
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO) # looger 設定
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Government Tender Scraper API")
+app = FastAPI(title="Government Tender Scraper API") # FastAPI 名稱
 
 # Configure CORS
 origins = [
@@ -23,10 +23,10 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=origins, 
+    allow_credentials=True, #設定是否允許前端傳送 Cookies 或 驗證資訊（如 HTTP 認證）到後端。
+    allow_methods=["*"], #設定允許的 HTTP 方法
+    allow_headers=["*"], #不限制，允許所有標頭
 )
 
 # Initialize scraper
