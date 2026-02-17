@@ -13,12 +13,13 @@ app = FastAPI(title="Government Tender Scraper API")
 
 # Configure CORS
 origins = [
-    "http://localhost",
+    "*" # Allow all for development convenience
+    ]
+
+""" "http://localhost",
     "http://localhost:8080",
     "http://localhost:3000",
-    "http://localhost:5173", # Common Vue/Vite port
-    "*" # Allow all for development convenience
-]
+    "http://localhost:5173",  """
 
 app.add_middleware(
     CORSMiddleware,
