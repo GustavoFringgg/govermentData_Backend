@@ -29,6 +29,8 @@ app.add_middleware(
     allow_headers=["*"], #不限制，允許所有標頭
 )
 
+
+#test1
 # Initialize scraper
 # Note: In a production environment, you might want to use a background task
 # or a singleton pattern more carefully. For now, we instantiate on request
