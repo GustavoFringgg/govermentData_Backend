@@ -1,6 +1,16 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
+#FastAPI 會根據您設定的 BaseModel 自動產生 Swagger (OpenAPI) 文件
+#response_model=List[TenderItem]: FastAPI 會根據您設定的 BaseModel 自動產生 Swagger (OpenAPI) 文件
+#None = Null
+
+
+#定義一個class 繼承 baseModel 
+#1.檢查資料型別
+#2.轉成JSON格式
+#3.自動產生 Swagger (OpenAPI) 文件
 class TenderItem(BaseModel):
     id: Optional[int] = None # 項次
     agency_name: Optional[str] = None # 機關名稱

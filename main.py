@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from typing import List, Optional
 from models import TenderItem
 from scraper import Scraper
 import logging
@@ -30,32 +30,29 @@ app.add_middleware(
 )
 
 
-#test1
-# Initialize scraper
-# Note: In a production environment, you might want to use a background task
-# or a singleton pattern more carefully. For now, we instantiate on request
-# or keep a global instance if we want to reuse the driver (though reuse can be tricky with state).
-# For simplicity and robustness, we'll instantiate per request or use a simple cached approach.
-# Since scraping takes time, a synchronous endpoint will block. 
-# We should probably run this asynchronously or just accept the delay for now as per user request.
 
 @app.get("/api/tenders", response_model=List[TenderItem])
-async def get_tenders(tenderName: str = None):
-    """
-    Scrapes the government website and returns tender data.
-    This operation is time-consuming.
-    """
-    scraper = Scraper(headless=True)
+async def get_tenders(tenderName: Optional[str] = None): 
+
+    scraper = Scraper(headless=True) 
+    # 初始化 scraper 建立新的物件 
+    # headless=True: 是否以無頭模式運行 程式會在背景執行瀏覽器 不會顯示
+    # 爬完資料後關閉瀏覽器
     try:
         data = scraper.scrape_data(keyword=tenderName)
+        # 也可以寫成
+        # data = scraper.scrape_data(tenderName) 但為了可讀性 需要keyword = tenderName
         return data
     except Exception as e:
         logger.error(f"Scraping failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
+    #「如果是直接執行這個檔案 (python main.py)，才執行下面的程式碼。」
+    # 用途:避免副作用
+    # if run python main.py then run uvicorn
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000,reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000,reload=True) 
 
 
