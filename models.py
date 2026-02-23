@@ -9,7 +9,7 @@ from typing import Optional
 
 #定義一個class 繼承 baseModel 
 #1.檢查資料型別
-#2.轉成JSON格式
+#2.轉成JSON格式 ** 
 #3.自動產生 Swagger (OpenAPI) 文件
 class TenderItem(BaseModel):
     id: Optional[int] = None # 項次
