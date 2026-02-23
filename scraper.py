@@ -19,6 +19,7 @@ import logging
 from typing import List, Dict #型別提示 (Type Hinting)。讓程式碼更易讀，告訴開發者這個變數應該是 List 還是 Dict
 
 from models import TenderItem
+from typing import List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -59,92 +60,96 @@ class Scraper:
         #webdriver.Chrome(...)：用上面所有設定啟動瀏覽器，並把實例存到 self.driver，之後的爬蟲操作都透過它進行
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-    def scrape_data(self, keyword: str = None) -> List[TenderItem]: #執行核心業務邏輯
+    def scrape_data(self, keyword: Optional[str] = None) -> List[TenderItem]:  #類TS 回傳顯示格式為 List[TenderItem]
         if not self.driver:
             self.setup_driver()
 
         base_url = "https://web.pcc.gov.tw/prkms/tender/common/basic/readTenderBasic"
         results = []
         page = 1
-        max_pages = 30 # User mentioned ~8 pages, but 1100 records / 50 per page = 22 pages. Set 30 safe limit.
+        max_pages = 30 
 
         try:
             while page <= max_pages:
-                # Construct URL with pagination
-                # d-49738-p is the page parameter based on the HTML analysis
+
                 url = f"{base_url}?d-49738-p={page}"
                 
                 if keyword:
-                    url += f"&tenderName={keyword}" # Note: This param name is a guess, might need adjustment if search doesn't work by URL
+                    url += f"&tenderName={keyword}"
 
                 logger.info(f"Navigating to page {page}: {url}")
-                self.driver.get(url)
 
-                wait = WebDriverWait(self.driver, 10)
+                self.driver.get(url) #開啟真實瀏覽器
+
+                wait = WebDriverWait(self.driver, 10) #設定等待時間(顯性等待)
                 try:
-                    # Wait for table
+                    # 意思：「等到 id='tpam' 的 table 出現，才繼續執行下一行」
+                    # 如果 10 秒內沒出現 → 拋出 TimeoutException → 被 except 捕捉 → break
+                    # 這裡使用selenium找元素，是因為前端如果是JS渲染，就須依賴此查找DOM
                     wait.until(EC.presence_of_element_located((By.ID, "tpam")))
                 except:
                     logger.warning(f"Timeout waiting for table on page {page}. Stopping.")
                     break
                 
-                time.sleep(1) # Be nice to the server
+                time.sleep(1) #保護機制
 
                 soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+                #self.driver.page_source 完整 HTML 字串
+
                 target_table = soup.find('table', id='tpam')
                 
-                if not target_table:
+                if not target_table: #如果沒有找到table 就回傳None
                     logger.warning(f"No table found on page {page}. Stopping.")
                     break
 
+                # table => tbody => tr
                 rows = target_table.find('tbody').find_all('tr')
-                if not rows:
-                    logger.info(f"No rows found on page {page}. Stopping.")
+                if not rows: #如果沒有找到row 就回傳None
+                    logger.warning(f"No rows found on page {page}. Stopping.")
                     break
                     
                 logger.info(f"Found {len(rows)} rows on page {page}.")
                 
-                current_page_count = 0
+                current_page_count = 0 #初始化解析幾筆資料
 
-                import re
+                import re # 引入正規表達式模組
 
                 for row in rows:
-                    cols = row.find_all('td')
-                    if len(cols) < 9:
-                        continue 
-                    
-                    # ID Extraction: Handle <span class="red">!</span> or other noise
-                    # Just grab the first sequence of digits
-                    id_text_full = cols[0].get_text(strip=True)
-                    id_match = re.search(r'\d+', id_text_full)
-                    item_id = int(id_match.group(0)) if id_match else None
-                    
-                    # Tender Name Extraction
-                    tender_name_raw = None
-                    name_cell = cols[2]
-                    name_match = re.search(r'pageCode2Img\("(.*?)"\)', str(name_cell))
-                    if name_match:
-                        tender_name_raw = name_match.group(1)
-                    else:
-                        tender_name_raw = name_cell.get_text(strip=True)
+                    cols = row.find_all('td') #return list 
+                    #cols[0]  # 編號
+                    #cols[1]  # 機關名稱
+                    #cols[2]  # 標案名稱
 
-                    # Budget
+                    if len(cols) < 9: # 少於9欄資料 就跳過
+                        continue 
+  
+                    # 1. 取得純文字
+                    # 2. 使用正規表達式尋找連續數字
+                    # 3. 轉換成整數
+                    id_text_full = cols[0].get_text(strip=True) # BeautifulSoup 的方法，用來取得標籤內的純文字
+                    id_match = re.search(r'\d+', id_text_full) 
+                    # r'\d+' 是一個正規表達式，意思是「尋找一個或多個連續的數字」r = raw string 加入 r 不會被當跳脫字元
+                    item_id = int(id_match.group(0)) if id_match else None
+                    # group(0) 找到的第一個符合條件的字串
+                    # 有找到 → 轉成 int，例如 123 沒找到 → 設為 None
+
+                    # 將預算金額 使用 replace() 移除逗號
                     budget_raw = cols[8].get_text(strip=True).replace(',', '')
 
                     item = TenderItem(
                         id=item_id,
                         agency_name=cols[1].get_text(strip=True),
-                        tender_name=tender_name_raw,
+                        tender_name=cols[2].get_text(strip=True),  #如果只想要標案名稱=> cols[2].find('a').get_text(strip=True)
                         tender_mode=cols[4].get_text(strip=True),
                         procurement_nature=cols[5].get_text(strip=True),
                         announcement_date=cols[6].get_text(strip=True),
                         deadline=cols[7].get_text(strip=True),
                         budget=budget_raw
                     )
-                    results.append(item)
+                    results.append(item) # 組合 json 格式
                     current_page_count += 1
                 
-                if current_page_count == 0:
+                if current_page_count == 0: #當沒有資料可以爬，就 break 進 logger.info
                     logger.info("No valid items parsed on this page. Stopping.")
                     break
                     
@@ -152,15 +157,15 @@ class Scraper:
                 
             logger.info(f"Total scraped {len(results)} items across {page-1} pages.")
 
-        except Exception as e:
-            logger.error(f"Error during scraping: {e}")
+        except Exception as e: 
+            logger.error(f"Error during scraping: {e}") # 記錄錯誤訊息
             if self.driver:
                 self.driver.save_screenshot("debug_error.png")
-            raise e
+            raise e # 把錯誤繼續往上拋（讓 main.py 的 except 接到）
         finally:
             if self.driver:
-                self.driver.quit()
-                self.driver = None
+                self.driver.quit()  # 關閉瀏覽器
+                self.driver = None  # 清除 driver 參考
 
         return results
 
@@ -171,7 +176,5 @@ if __name__ == "__main__":
     try:
         data = s.scrape_data()
         print(f"Got {len(data)} records.")
-        if data:
-            print(data[0])
     except Exception as e:
         print(f"Failed: {e}")
