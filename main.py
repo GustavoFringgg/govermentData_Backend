@@ -32,6 +32,11 @@ app.add_middleware(
 
 
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+
 @app.get("/api/tenders", response_model=List[TenderItem])
 async def get_tenders(tenderName: Optional[str] = None): 
 
