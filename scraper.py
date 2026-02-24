@@ -97,7 +97,7 @@ class Scraper:
                     logger.warning(f"Timeout waiting for table on page {page}. Stopping.")
                     break
                 
-                time.sleep(1) #保護機制
+                #time.sleep(1) #保護機制 (暫時取消 加快爬蟲速度)
 
                 soup = BeautifulSoup(self.driver.page_source, 'html.parser')
                 #self.driver.page_source 完整 HTML 字串
