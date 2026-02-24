@@ -2,31 +2,31 @@
 
 ##  產品簡介 (Product Overview)
 這是一個專為開發者設計的**政府採購資料自動化擷取服務**。
-本產品解決了政府採購網 (PCC) 資料難以取得、缺乏 API 介面以及反爬蟲機制嚴格的問題。透過此後端服務，開發者可以輕鬆地以標準 RESTful API 格式獲取最新的標案資訊，無需煩惱底層的爬蟲實作與維護。
 
-##  核心功能 (Key Features)
 
-*   ** 自動化資料擷取 (Automated Scraping)**
-    *   內建智慧型爬蟲核心，自動模擬瀏覽器行為。
-    *   支援關鍵字搜尋與多頁面自動翻頁功能。
-*   ** 反反爬蟲機制 (Anti-Anti-Scraping)**
-    *   整合偽裝標頭 (User-Agent Rotation) 與自動延遲機制。
+###  核心功能 (Key Features)
+
+*    自動化資料擷取 (Automated Scraping)<br>
+    *   內建爬蟲核心，模擬瀏覽器行為。<br>
+    *   支援關鍵字搜尋與多頁面翻頁功能。
+*    反反爬蟲機制 (Anti-Anti-Scraping)<br>
+    *   整合偽裝標頭 (User-Agent Rotation) 與自動延遲機制。<br>
     *   使用 Selenium + undetected-chromedriver 技術繞過 WAF 檢測。
-*   ** 標準化 API 介面 (Standardized RESTful API)**
-    *   提供清晰的 HTTP GET 接口，隨插即用。
+*    標準化 API 介面 (Standardized RESTful API)<br>
+    *   提供清晰的 HTTP GET 接口。<br>
     *   回傳格式統一為 JSON，方便前端與資料分析使用。
-*   ** 資料結構化 (Structured Data Models)**
-    *   自動將非結構化的網頁 HTML 轉換為嚴謹的 Python 物件 (Pydantic Models)。
+*    資料結構化 (Structured Data Models)<br>
+    *   自動將非結構化的網頁 HTML 轉換為嚴謹的 Python 物件 (Pydantic Models)。<br>
     *   欄位包含：機關名稱、標案名稱、預算金額、公告日期、截標日期等核心資訊。
 
-##  技術架構 (Tech Stack)
+###  技術架構 (Tech Stack)
 
 *   **後端框架**: [FastAPI](https://fastapi.tiangolo.com/) (高效能、易於開發的 Python Web 框架)
 *   **爬蟲核心**: [Selenium](https://www.selenium.dev/) (自動化瀏覽器控制)
 *   **資料解析**: [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/) (HTML 解析)
 *   **資料驗證**: [Pydantic](https://docs.pydantic.dev/) (資料格式定義與驗證)
 
-##  快速開始 (Quick Start)
+###  快速開始 (Quick Start)
 
 ### 1. 安裝依賴 (Installation)
 

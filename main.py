@@ -53,6 +53,9 @@ if __name__ == "__main__":
     # 用途:避免副作用
     # if run python main.py then run uvicorn
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000,reload=True) 
+    uvicorn.run("main:app"   # main.py 裡的 app 物件
+    , host="0.0.0.0",        # 接受所有 IP 連線（不只是本機）
+    port=8000,               # 監聽 8000 port
+    reload=True)             # 自動重新啟動
 
 
