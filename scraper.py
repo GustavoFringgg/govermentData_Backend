@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 # WebDriverWait：設定一個最長等待時間（例如 10 秒）
 # expected_conditions：設定「要等什麼條件」例如：直到元素出現、直到按鈕可點擊
 
-from webdriver_manager.chrome import ChromeDriverManager #自動下載、安裝、更新符合電腦 Chrome 版本的驅動程式
+import os # 用來偵測作業系統環境，決定 Chrome 路徑
 from selenium.webdriver.chrome.options import Options #設定 Chrome 瀏覽器的啟動參數
 from bs4 import BeautifulSoup
 #Selenium 負責「操作」瀏覽器（點擊、輸入、等待）
@@ -56,9 +56,15 @@ class Scraper:
         chrome_options.add_experimental_option('useAutomationExtension', False)
         # 停用 Chrome 自動化擴充套件，進一步降低被識別為機器人的機率。
 
-        #ChromeDriverManager().install()：自動下載並安裝對應版本的 ChromeDriver（不用手動管理版本）
-        #webdriver.Chrome(...)：用上面所有設定啟動瀏覽器，並把實例存到 self.driver，之後的爬蟲操作都透過它進行
-        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        # 根據環境決定 Chrome/ChromeDriver 路徑
+        # 在 Docker (Render) 上使用系統安裝的 chromium
+        # 在本機 Windows 開發時，讓 Selenium 自動尋找 Chrome
+        if os.path.exists("/usr/bin/chromium"):  # Docker / Linux 環境（Render）
+            chrome_options.binary_location = "/usr/bin/chromium"
+            self.driver = webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=chrome_options)
+        else:  # 本機 Windows 開發環境，使用 webdriver-manager 自動管理
+            from webdriver_manager.chrome import ChromeDriverManager
+            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
     def scrape_data(self, keyword: Optional[str] = None) -> List[TenderItem]:  #類TS 回傳顯示格式為 List[TenderItem]
         if not self.driver:

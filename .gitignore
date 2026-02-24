@@ -1,2 +1,6 @@
 __pycache__/
 .venv/
+.env
+*.png
+*.log
+.DS_Store

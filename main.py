@@ -4,6 +4,7 @@ from typing import List, Optional
 from models import TenderItem
 from scraper import Scraper
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO) # looger 設定
@@ -53,9 +54,10 @@ if __name__ == "__main__":
     # 用途:避免副作用
     # if run python main.py then run uvicorn
     import uvicorn
+    port = int(os.environ.get("PORT", 8000))  # Render 會自動注入 PORT 環境變數
     uvicorn.run("main:app"   # main.py 裡的 app 物件
     , host="0.0.0.0",        # 接受所有 IP 連線（不只是本機）
-    port=8000,               # 監聽 8000 port
-    reload=True)             # 自動重新啟動
+    port=port,               # 使用環境變數的 Port
+    reload=False)            # 正式環境不要開 reload
 
 
