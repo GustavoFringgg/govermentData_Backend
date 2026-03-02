@@ -68,4 +68,4 @@ if __name__ == "__main__":
 
 
 
-a = 111     #test
+print('test')
