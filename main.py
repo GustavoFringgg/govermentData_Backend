@@ -57,7 +57,7 @@ async def scheduled_scrape():
 
 @app.on_event("startup")
 async def startup():
-    scheduler.add_job(scheduled_scrape, 'cron', hour=6,minute=30)
+    scheduler.add_job(scheduled_scrape, 'cron', hour=0 ,minute=0)
     scheduler.start()
 
 
