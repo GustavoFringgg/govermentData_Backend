@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from models import TenderItem
 from scraper import Scraper
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from datetime import datetime
+
 import logging
 import os
 
@@ -37,6 +40,32 @@ app.add_middleware(
 async def health_check():
     return {"status": "ok"}
 
+cached_data = {"data":[],"last_updated":None}
+scheduler = AsyncIOScheduler()
+
+async def scheduled_scrape():
+    logger.info("Starting scheduled scrape...")
+    scraper = Scraper(headless=True)
+    try:
+        result = scraper.scrape_data()
+        cached_data["data"] = result
+        cached_data["last_updated"] = str(datetime.now())
+        logger.info(f"Scraped {len(result)} items.")
+
+    except Exception as e:
+        logger.error(f"Scheduled scrape failed: {e}")
+
+@app.on_event("startup")
+async def startup():
+    scheduler.add_job(scheduled_scrape, 'cron', hour=13,minute=30)
+    scheduler.start()
+
+
+@app.get("/api/tenders/cached")
+async def get_cached_tenders():
+    if not cached_data["data"]:
+        return {"message": "No cached data available. Please try again later.","data":[]}
+    return cached_data
 
 @app.get("/api/tenders", response_model=List[TenderItem])
 async def get_tenders(tenderName: Optional[str] = None): 
