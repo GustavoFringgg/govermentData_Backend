@@ -10,9 +10,8 @@
     *   內建爬蟲核心，模擬瀏覽器行為。<br>
     *   支援關鍵字搜尋與多頁面翻頁功能。
 *    反反爬蟲機制 (Anti-Anti-Scraping)<br>
-    *   整合偽裝標頭 (User-Agent Rotation) 與自動延遲機制。<br>
-    *   使用 Selenium + undetected-chromedriver 技術繞過 WAF 檢測。
-*    標準化 API 介面 (Standardized RESTful API)<br>
+    *   使用 Selenium + undetected-chromedriver
+*    標準化 API 介面 (RESTful API)<br>
     *   提供清晰的 HTTP GET 接口。<br>
     *   回傳格式統一為 JSON，方便前端與資料分析使用。
 *    資料結構化 (Structured Data Models)<br>
