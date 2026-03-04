@@ -30,3 +30,5 @@ async def get_cached_tenders():
     if not cached_data["data"]:
         return {"message": "No cached data available. Please try again later.","data":[]}
     return cached_data
+
+#不用特別加HTTPException因為get_cached_tenders不會有error需要throw

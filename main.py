@@ -9,7 +9,6 @@ import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO) # looger 設定
-logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Government Tender Scraper API") # FastAPI 名稱
 app.include_router(tenders.router)
@@ -32,7 +31,6 @@ app.add_middleware(
     allow_methods=["*"], #設定允許的 HTTP 方法
     allow_headers=["*"], #不限制，允許所有標頭
 )
-
 
 
 
