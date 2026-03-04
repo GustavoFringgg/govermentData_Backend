@@ -1,19 +1,18 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Optional
-from models import TenderItem
-from scraper import Scraper
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from datetime import datetime
+from routers import tenders,health
 
+from services import tender_service
 import logging
 import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO) # looger 設定
-logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Government Tender Scraper API") # FastAPI 名稱
+app.include_router(tenders.router)
+app.include_router(health.router)
 
 # Configure CORS
 origins = [
@@ -35,53 +34,17 @@ app.add_middleware(
 
 
 
-@app.get("/health")
-@app.head("/health")
-async def health_check():
-    return {"status": "ok"}
 
-cached_data = {"data":[],"last_updated":None}
 scheduler = AsyncIOScheduler()
 
 async def scheduled_scrape():
-    logger.info("Starting scheduled scrape...")
-    scraper = Scraper(headless=True)
-    try:
-        result = scraper.scrape_data()
-        cached_data["data"] = result
-        cached_data["last_updated"] = str(datetime.now())
-        logger.info(f"Scraped {len(result)} items.")
-
-    except Exception as e:
-        logger.error(f"Scheduled scrape failed: {e}")
+    await tender_service.update_cache()
 
 @app.on_event("startup")
 async def startup():
     scheduler.add_job(scheduled_scrape, 'cron', hour=0 ,minute=0)
     scheduler.start()
 
-
-@app.get("/api/tenders/cached")
-async def get_cached_tenders():
-    if not cached_data["data"]:
-        return {"message": "No cached data available. Please try again later.","data":[]}
-    return cached_data
-
-@app.get("/api/tenders", response_model=List[TenderItem])
-async def get_tenders(tenderName: Optional[str] = None): 
-
-    scraper = Scraper(headless=True) 
-    # 初始化 scraper 建立新的物件 
-    # headless=True: 是否以無頭模式運行 程式會在背景執行瀏覽器 不會顯示
-    # 爬完資料後關閉瀏覽器
-    try:
-        data = scraper.scrape_data(keyword=tenderName)
-        # 也可以寫成
-        # data = scraper.scrape_data(tenderName) 但為了可讀性 需要keyword = tenderName
-        return data
-    except Exception as e:
-        logger.error(f"Scraping failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__": 
