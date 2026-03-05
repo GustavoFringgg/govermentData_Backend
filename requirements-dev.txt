@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest
+pytest-asyncio        # 讓 pytest 支援 async 函數
+httpx                 # FastAPI TestClient 需要

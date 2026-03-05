@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from routers import tenders,health
-
+from contextlib import asynccontextmanager
+from routers import tenders, health
 from services import tender_service
 import logging
 import os
@@ -10,7 +10,21 @@ import os
 # Configure logging
 logging.basicConfig(level=logging.INFO) # looger 設定
 
-app = FastAPI(title="Government Tender Scraper API") # FastAPI 名稱
+scheduler = AsyncIOScheduler()
+
+async def scheduled_scrape():
+    await tender_service.update_cache()
+
+@asynccontextmanager # 裝飾器，用來管理資源的生命週期（建立與關閉）
+async def lifespan(app: FastAPI):
+    # Startup：server 啟動時執行
+    scheduler.add_job(scheduled_scrape, 'cron', hour=0, minute=0)
+    scheduler.start()
+    yield 
+    # Shutdown：server 關閉時執行
+    scheduler.shutdown()
+
+app = FastAPI(title="Government Tender Scraper API", lifespan=lifespan) # lifespan=lifespan: 告訴 FastAPI，請使用 lifespan 這個函式來管理整個應用的啟動和關閉流程
 app.include_router(tenders.router)
 app.include_router(health.router)
 
@@ -31,21 +45,6 @@ app.add_middleware(
     allow_methods=["*"], #設定允許的 HTTP 方法
     allow_headers=["*"], #不限制，允許所有標頭
 )
-
-
-
-
-scheduler = AsyncIOScheduler()
-
-async def scheduled_scrape():
-    await tender_service.update_cache()
-
-@app.on_event("startup")
-async def startup():
-    scheduler.add_job(scheduled_scrape, 'cron', hour=0 ,minute=0)
-    scheduler.start()
-
-
 
 if __name__ == "__main__": 
     #「如果是直接執行這個檔案 (python main.py)，才執行下面的程式碼。」
